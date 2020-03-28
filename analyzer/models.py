@@ -11,10 +11,11 @@ from django.db import models
 class Country(models.Model):
     country_id = models.AutoField(primary_key=True)
     name = models.CharField(unique=True, max_length=50)
-    code = models.CharField(unique=True, max_length=3)
+    iso_a_3_code = models.CharField(unique=True, max_length=3)
+    iso_a_2_code = models.CharField(unique=True, max_length=2)
 
     def __str__(self):
-        return '%s, %s' % (self.name, self.code)
+        return '%s, %s' % (self.name, self.iso_a_3_code)
 
     class Meta:
         managed = False
@@ -85,7 +86,7 @@ class DiseaseStats(models.Model):
     disease_season = models.ForeignKey(DiseaseSeason, models.PROTECT)
     stats_date = models.DateField()
     confirmed = models.IntegerField()
-    recovered = models.IntegerField()
+    recovered = models.IntegerField(null=True)
     deaths = models.IntegerField()
 
     class Meta:

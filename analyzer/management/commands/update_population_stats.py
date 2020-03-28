@@ -67,9 +67,8 @@ class Command(BaseCommand):
         inserted = 0
         updated = 0
         countries = Country.objects.all()
-
         for country in countries:
-            country_stats = stats.countries_dict.get(country.code)
+            country_stats = stats.countries_dict.get(country.iso_a_3_code)
             if country_stats is None:
                 continue
 
