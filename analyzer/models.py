@@ -84,6 +84,7 @@ class DiseaseSeason(models.Model):
 class DiseaseStats(models.Model):
     disease_stats_id = models.BigAutoField(primary_key=True)
     disease_season = models.ForeignKey(DiseaseSeason, models.PROTECT)
+    country = models.ForeignKey(Country, models.PROTECT)
     stats_date = models.DateField()
     confirmed = models.IntegerField()
     recovered = models.IntegerField(null=True)
@@ -92,7 +93,7 @@ class DiseaseStats(models.Model):
     class Meta:
         managed = True
         db_table = 'disease_stats'
-        unique_together = (('disease_season', 'stats_date'),)
+        unique_together = (('disease_season', 'country', 'stats_date'),)
 
 
 class InternalsDataHandlingTask(models.Model):

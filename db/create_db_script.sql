@@ -6,7 +6,7 @@ CREATE SCHEMA public;
 ------------------------------
 CREATE TABLE Country
 (
-    Country_id serial NOT NULL,
+    Country_id smallserial NOT NULL,
     Name VARCHAR(50) NOT NULL,
     ISO_A_3_CODE CHAR(3) NOT NULL,
     ISO_A_2_CODE CHAR(2) NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE Age_group_CFR
 CREATE TABLE Population_stats
 (
     Population_stats_id serial NOT NULL,
-    Country_id integer NOT NULL,
+    Country_id smallint NOT NULL,
     Year integer NOT NULL,
     Population bigint NOT NULL,
     UNIQUE(Country_id, Year),
@@ -157,12 +157,14 @@ CREATE TABLE Disease_stats
 (
     Disease_stats_id bigserial NOT NULL,
     Disease_season_id integer NOT NULL,
+    Country_id smallint NOT NULL,
     Stats_date DATE NOT NULL,
     Confirmed integer NOT NULL,
     Recovered integer,
     Deaths integer NOT NULL,
-    UNIQUE(Disease_season_id, Stats_date),
+    UNIQUE(Disease_season_id, Country_id, Stats_date),
     FOREIGN KEY(Disease_season_id) REFERENCES Disease_season ON DELETE RESTRICT,
+    FOREIGN KEY(Country_id) REFERENCES Country ON DELETE RESTRICT,
     PRIMARY KEY(Disease_stats_id)
 );
 ------------------------------
@@ -479,20 +481,10 @@ INSERT INTO Disease_season(Disease_id, Start_date) VALUES(1, '11-17-2019');
 ------------------------------
 ----Internals_data_handling_task insertions
 ------------------------------
-CREATE TABLE Internals_data_handling_task
-(
-    Internals_data_handling_task_id smallserial NOT NULL,
-    Task_name VARCHAR(50) NOT NULL,
-    Frequency_days integer NOT NULL,
-    Last_update DATE,
-    Enabled_flag boolean NOT NULL,
-    Command_name VARCHAR(50) NOT NULL,
-    UNIQUE(Task_name),
-    PRIMARY KEY(Internals_data_handling_task_id)
-);
-
 INSERT INTO Internals_data_handling_task(Task_name, Frequency_days, Enabled_flag, Command_name)
 VALUES('Update population stats', 100, 'TRUE', 'update_population_stats');
+INSERT INTO Internals_data_handling_task(Task_name, Frequency_days, Enabled_flag, Command_name)
+VALUES('Update COVID-19 daily stats', 1, 'TRUE', 'update_covid_19_stats');
 ------------------------------
 ---- 
 ------------------------------

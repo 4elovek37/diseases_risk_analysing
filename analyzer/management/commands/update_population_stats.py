@@ -20,13 +20,12 @@ class Command(BaseCommand):
         self.zip_path = './analyzer/management/commands/update_population_stats/dataset.zip'
 
     def handle(self, *args, **options):
-        wget.download(self.url, self.zip_path)
-
         try:
+            wget.download(self.url, self.zip_path)
             with ZipFile(self.zip_path) as zip_data:
                 with zip_data.open(zip_data.namelist()[0]) as xml_data:
                     parsed_stats = self.process_xml(xml_data.read())
-                    print(self.update_db(parsed_stats))
+                    self.stdout.write(self.update_db(parsed_stats))
         except:
             self.clear_temp_data()
             raise
@@ -34,7 +33,8 @@ class Command(BaseCommand):
         self.clear_temp_data()
         return self.style.SUCCESS('update_population_stats finished OK')
 
-    def process_xml(self, xml):
+    @staticmethod
+    def process_xml(xml):
         stats_from_xml = PopulationStatsFromXml()
 
         xml_str = xml.decode("utf-8")
@@ -63,7 +63,8 @@ class Command(BaseCommand):
 
         return stats_from_xml
 
-    def update_db(self, stats):
+    @staticmethod
+    def update_db(stats):
         inserted = 0
         updated = 0
         countries = Country.objects.all()
@@ -73,7 +74,8 @@ class Command(BaseCommand):
                 continue
 
             for year, value in country_stats.items():
-                existing, created = PopulationStats.objects.get_or_create(country=country, year=year, population=value)
+                obj, created = PopulationStats.objects.update_or_create(country=country, year=year,
+                                                                        defaults={'population': value})
                 if created:
                     inserted += 1
                 else:
