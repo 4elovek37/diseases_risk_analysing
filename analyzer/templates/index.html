@@ -10,7 +10,7 @@
 <section class="hero-wrap js-fullheight">
 
 
-		<table style="width: 100%;height: 100%;">
+		<table class="table-main">
 				<tbody>
 				<tr>
 					<td style="width: 15%;">
@@ -48,26 +48,66 @@
 											var code_request = 'http://api.tiles.mapbox.com/v4/geocode/mapbox.places-country-v1/'
 											+ coords + '.json?access_token=' + mapboxgl.accessToken;
 											$.getJSON(code_request, function(data) {
-												console.log(data.features[0].properties.short_code);
+												if(data.features.length > 0){
+													console.log(data.features[0].properties.short_code);
+												} else{
+													console.log('00')
+												}
 											});
 										});
-
-
-										var coords = '-73.989,40.733';
-
-
-
-
-
-										console.log('asdasdad')
-
-
 										</script>
 								</td>
 							</tr>
 							<tr style="height: 20%;">
 								<td>
-									<h3>BBBBBB2</h3>
+									<table style="width: 100%;height: 100%;">
+										<tbody>
+											<tr>
+												<td>
+													<div class="card text-center">
+													  <h5 class="card-header py-4">
+														Fatality rate top
+													  </h5>
+													  <div class="card-body">
+															{% for country in CFR_top %}
+														  <p class="card-text">
+																{{ country.country_name }}: {{ country.CFR }}
+														  </p>
+															{% endfor %}
+													  </div>
+													</div>
+												</td>
+												<td>
+													<div class="card text-center">
+													  <h5 class="card-header py-4">
+														Expansion rate top
+													  </h5>
+													  <div class="card-body">
+														 {% for country in growth_top %}
+														<p class="card-text">
+															{{ country.country_name }}: {{ country.avg_growth }}
+														</p>
+														  {% endfor %}
+													  </div>
+													</div>
+												</td>
+												<td>
+													<div class="card text-center">
+													  <h5 class="card-header py-4">
+														Confirmed cases top
+													  </h5>
+													  <div class="card-body">
+														  {% for country in confirmed_top %}
+														<p class="card-text">
+															{{ country.country_name }}: {{ country.confirmed }}
+														</p>
+														  {% endfor %}
+													  </div>
+													</div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
 								</td>
 							</tr>
 							</tbody>

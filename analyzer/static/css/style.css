@@ -1346,6 +1346,16 @@ pre {
   .table tbody + tbody {
     border-top: 2px solid #dee2e6; }
 
+.table-main {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    color: #212529;
+}
+.table-main td {
+    text-align: center;
+}
+
 .table-sm th,
 .table-sm td {
   padding: 0.3rem; }
