@@ -1,0 +1,13 @@
+<div class="card text-left">
+    <h5 class="card-header py-2 text-center">Risks estimation</h5>
+    <div class="card-body">
+     <form id="risk_estimation_form" action="" method="get">
+            {{ form.as_p }}
+         {% if allow_submit == True %}
+            <div class="footer text-center">
+     <input type="submit" value="Submit" class="btn btn-primary" />
+            </div>
+         {% endif %}
+     </form>
+    </div>
+</div>

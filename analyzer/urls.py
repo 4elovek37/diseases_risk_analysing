@@ -6,4 +6,5 @@ from . import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url('^get_country_basic_stat$', views.country_basic_stat, name='country_basic_stat'),
+    url('^get_estimate_risk_form$', views.get_estimate_risk_form, name='get_estimate_risk_form'),
 ]

@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from analyzer.models import Country, Disease, DiseaseSeason, DiseaseStats
+from analyzer.models import Country, Disease, DiseaseSeason, DiseaseStats, ComorbidConditionCfr
+from .forms import EstimateRisksForm
 import operator
 import statistics
+from django.http import QueryDict
 
 
 class CountryActualState:
@@ -58,6 +60,53 @@ def country_basic_stat(request):
                                                                    'cfr': cfr})
     else:
         return HttpResponse("Request method is not a GET")
+
+
+def get_estimate_risk_form(request):
+    covid = Disease.objects.get(icd_10_code='U07.1')
+    comorbid_list = ComorbidConditionCfr.objects.filter(disease=covid)
+
+    comorbid_names = list()
+    for comorbid in comorbid_list:
+        comorbid_names.append((comorbid.comorbid_disease.disease_id, comorbid.comorbid_disease.name))
+
+    if request.method == 'GET':
+        if len(request.GET['form']) == 0:
+            form = EstimateRisksForm()
+            form.fields['comorbid'].choices = comorbid_names
+            form.fields['social_activity_level'].initial = ('mid')
+        else:
+            form_data = QueryDict(request.GET['form'].encode('ASCII'))
+            form = EstimateRisksForm()
+            form.fields['country_2_a_code'].initial = request.GET['country_code']
+            form.fields['comorbid'].choices = comorbid_names
+            if 'comorbid' in form_data:
+                form.fields['comorbid'].initial = form_data.getlist('comorbid')
+
+            form.fields['start_date'].initial = form_data['start_date']
+            form.fields['end_date'].initial = form_data['end_date']
+            form.fields['age'].initial = form_data['age']
+            form.fields['social_activity_level'].initial = form_data['social_activity_level']
+
+        allow_submit = _check_if_country_code_acceptable_for_covid(request.GET['country_code'])
+        return render(request, 'estimate_risks_form.html', context={'form': form,
+                                                                    'allow_submit': allow_submit})
+    else:
+        return HttpResponse("Request method is not a GET")
+
+
+def _check_if_country_code_acceptable_for_covid(country_a_2_code):
+    country = None
+    try:
+        country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
+    except Country.DoesNotExist:
+        return False
+
+    season = DiseaseSeason.objects.get(disease=Disease.objects.get(icd_10_code='U07.1'), start_date='2019-11-17')
+    if DiseaseStats.objects.filter(disease_season=season, country=country).count() == 0:
+        return False
+
+    return True
 
 
 def _get_covid_world_sum():

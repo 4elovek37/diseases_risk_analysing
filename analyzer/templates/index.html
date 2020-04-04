@@ -13,9 +13,8 @@
 		<table class="table-main">
 				<tbody>
 				<tr>
-					<td style="width: 15%;">
-						<h3>AAA</h3>
-
+					<td style="width: 15%; vertical-align:top;">
+						<div id="risk_estimation_form_div"></div>
 					</td>
 					<td style="width: 70%;">
 						<table style="width: 100%;height: 100%;">
@@ -28,44 +27,59 @@
 										  $('#country_base_stat').load("{% url 'country_basic_stat' %}" + "?" + "countryCode=" +
 										  countryCode);
 										}
-
+										function renderForm(country) {
+											$form=$('#risk_estimation_form');
+											var formstring = $form.serialize();
+											let data = {
+											  form: formstring,
+											  country_code: country
+											};
+											 $.ajax({
+												type: 'GET',
+												url: "{% url 'get_estimate_risk_form' %}",
+												data: data,
+												success: function (data) {
+													$("#risk_estimation_form_div").html(data);
+													$('.datepicker').datepicker();
+												},
+												error: function(data) {
+													$("#risk_estimation_form").html("Something went wrong!");
+												}
+											});
+										}
 
 										$.ajaxSetup({ cache: false });
-
 										mapboxgl.accessToken = 'pk.eyJ1IjoiNGVsb3ZlazM3IiwiYSI6ImNrOGV0NDJhaTAwOGIzZ3FramF3amM4ZzkifQ.clTpqunLmWrrotHRK993AQ';
-
-
 										 var map = new mapboxgl.Map({
 										  container: 'map', // The container ID
 										  style: 'mapbox://styles/mapbox/light-v10', // The map style to use
 										  center: [-99.9, 45.1], // Starting position [longitude, latitude]
 										  zoom: 2 // Starting zoom level
 										});
-
 										map.scrollZoom.disable();
-
-
-
 										map.on('load', function () {
 											map.resize();
 										});
 
 										map.on('click', function(e) {
-											console.log(e.lngLat)
 											var coords = e.lngLat.lng + ',' + e.lngLat.lat
 											var code_request = 'http://api.tiles.mapbox.com/v4/geocode/mapbox.places-country-v1/'
 											+ coords + '.json?access_token=' + mapboxgl.accessToken;
 											$.getJSON(code_request, function(data) {
 												if(data.features.length > 0){
-													renderBasicCountryStat(data.features[0].properties.short_code);
+													var country_code = data.features[0].properties.short_code;
+													renderBasicCountryStat(country_code);
+													renderForm(country_code);
 												} else{
 													renderBasicCountryStat("00");
+													renderForm("00");
 												}
 											});
 										});
 
 										$(document).ready(function() {
 											renderBasicCountryStat("00");
+											renderForm("00");
 										});
 										</script>
 								</td>
