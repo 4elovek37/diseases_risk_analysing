@@ -9,6 +9,8 @@
 <div class="main-section">
 <section class="hero-wrap js-fullheight">
 
+		<div class="modal fade" id="model_report" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+		</div>
 
 		<table class="table-main">
 				<tbody>
@@ -40,7 +42,22 @@
 												data: data,
 												success: function (data) {
 													$("#risk_estimation_form_div").html(data);
-													$('.datepicker').datepicker();
+													$('.datepicker').datepicker({ dateFormat: 'yy-mm-dd'});
+													$('#risk_estimation_form').on('submit', function(event){
+														event.preventDefault();
+														 var formstring = $(this).serialize();
+														 $.ajax({
+														 	type: 'GET',
+															url: "{% url 'get_modal_report' %}",
+															data: formstring,
+															success: function (data) {
+																$('#model_report').html(data).modal('show');
+															},
+															 error: function(data){
+																alert("epic fail");
+															}
+														 });
+													});
 												},
 												error: function(data) {
 													$("#risk_estimation_form").html("Something went wrong!");
@@ -81,6 +98,8 @@
 											renderBasicCountryStat("00");
 											renderForm("00");
 										});
+
+
 										</script>
 								</td>
 							</tr>

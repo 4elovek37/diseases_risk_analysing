@@ -1,10 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.http import QueryDict
 from analyzer.models import Country, Disease, DiseaseSeason, DiseaseStats, ComorbidConditionCfr
 from .forms import EstimateRisksForm
 import operator
 import statistics
-from django.http import QueryDict
+import datetime
 
 
 class CountryActualState:
@@ -27,10 +28,13 @@ class CountriesWorldTop:
 
 # Create your views here.
 def index(request):
-    world_top = _calc_covid_world_ranks()
-    return render(request, 'index.html', context={'CFR_top': world_top.cfr_top,
-                                                  'growth_top': world_top.growth_top,
-                                                  'confirmed_top': world_top.confirmed_top})
+    if request.method == 'GET':
+        world_top = _calc_covid_world_ranks()
+        return render(request, 'index.html', context={'CFR_top': world_top.cfr_top,
+                                                      'growth_top': world_top.growth_top,
+                                                      'confirmed_top': world_top.confirmed_top})
+    else:
+        return HttpResponse("Request method is not a GET")
 
 
 def country_basic_stat(request):
@@ -62,6 +66,13 @@ def country_basic_stat(request):
         return HttpResponse("Request method is not a GET")
 
 
+def get_modal_report(request):
+    if request.method == 'GET':
+        return render(request, "modal_report.html")
+    else:
+        return HttpResponse("Request method is not a GET")
+
+
 def get_estimate_risk_form(request):
     covid = Disease.objects.get(icd_10_code='U07.1')
     comorbid_list = ComorbidConditionCfr.objects.filter(disease=covid)
@@ -75,6 +86,8 @@ def get_estimate_risk_form(request):
             form = EstimateRisksForm()
             form.fields['comorbid'].choices = comorbid_names
             form.fields['social_activity_level'].initial = ('mid')
+            form.fields['start_date'].initial = datetime.date.today
+            form.fields['end_date'].initial = datetime.date.today
         else:
             form_data = QueryDict(request.GET['form'].encode('ASCII'))
             form = EstimateRisksForm()
