@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import QueryDict
+from .charts import DiseaseConfirmedChart
 from analyzer.models import Country, Disease, DiseaseSeason, DiseaseStats, ComorbidConditionCfr
 #import numpy as np
 from .forms import EstimateRisksForm
@@ -51,9 +52,19 @@ def country_basic_stat(request):
 
 def get_modal_report(request):
     if request.method == 'GET':
-        #form_data = QueryDict(request.GET['form'].encode('ASCII'))
+        form_data = request.GET
+        print(form_data)
+        country_code = form_data['country_2_a_code']
+        confirmed_cases_graph = covid_model.extrapolate_confirmed_cases(country_code)
+        for day in confirmed_cases_graph:
+            print(day.date, day.confirmed)
 
-        return render(request, "modal_report.html")
+        confirmed_chart_generator = DiseaseConfirmedChart(height=600,
+                                                          width=800,
+                                                          explicit_size=True,)
+        confirmed_chart = confirmed_chart_generator.generate(confirmed_cases_graph)
+
+        return render(request, "modal_report.html", context={'cht_confirmed': confirmed_chart})
     else:
         return HttpResponse("Request method is not a GET")
 
@@ -92,10 +103,3 @@ def get_estimate_risk_form(request):
     else:
         return HttpResponse("Request method is not a GET")
 
-
-def _approximate_covid_confirmed_function(country_a_2_code):
-    country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
-    season = DiseaseSeason.objects.get(disease=Disease.objects.get(icd_10_code='U07.1'), start_date='2019-11-17')
-    confirmed_list = list()
-    for stat in DiseaseStats.objects.filter(disease_season=season, country=country).order_by("-stats_date")[:10]:
-        confirmed_list.insert(0, stat.confirmed)

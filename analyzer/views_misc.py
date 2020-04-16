@@ -14,3 +14,9 @@ class CountriesWorldTop:
         self.cfr_top = list()
         self.growth_top = list()
         self.confirmed_top = list()
+
+
+class ConfirmedDailyStat:
+    def __init__(self, date, confirmed):
+        self.date = date
+        self.confirmed = confirmed

@@ -1,13 +1,97 @@
 from ..views_misc import CountryActualState
 from ..views_misc import CountriesWorldTop
+from ..views_misc import ConfirmedDailyStat
 from analyzer.models import Country, DiseaseStats
 import operator
 import statistics
+import numpy as np
+import datetime
+from enum import Enum
 
 
 class DiseaseModel:
+    class _Extrapolator:
+        class ExtrapolationMethod(Enum):
+            LIN = 1,
+            LOG = 2,
+            EXP = 3
+
+        def __init__(self):
+            self._method = self.ExtrapolationMethod.LIN
+            self.line_f = None
+            self.log_fit = None
+            self.exp_fit = None
+
+        def _calc_val_lin(self, x):
+            return self.line_f(x)
+
+        def _calc_val_log(self, x):
+            return self.log_fit[0] * x - self.log_fit[1]
+
+        def _calc_val_exp(self, x):
+            return np.exp(self.exp_fit[1]) * np.exp(self.exp_fit[0] * x)
+
+        def fit_data(self, x, y):
+            self.line_f = np.poly1d(np.polyfit(x[-10:], y[-10:], 1))
+            x_np = np.array(x)
+            y_np = np.array(y)
+            self.log_fit = np.polyfit(np.log(x_np), y, 1)
+            self.exp_fit = np.polyfit(x, np.log(y_np), 1, w=np.sqrt(y_np))
+
+            lin_squares = 0
+            log_squares = 0
+            exp_squares = 0
+
+            for i in range(len(x) - 10, len(x)):
+                line_est = self._calc_val_lin(x[i])
+                log_est = self._calc_val_log(x[i])
+                exp_est = self._calc_val_exp(x[i])
+                real_val = y[i]
+                lin_squares += pow(real_val - line_est, 2)
+                log_squares += pow(real_val - log_est, 2)
+                exp_squares += pow(real_val - exp_est, 2)
+
+            if lin_squares <= log_squares and lin_squares <= exp_squares:
+                self._method = self.ExtrapolationMethod.LIN
+            elif log_squares <= lin_squares and log_squares <= exp_squares:
+                self._method = self.ExtrapolationMethod.LOG
+            else:
+                self._method = self.ExtrapolationMethod.EXP
+            print(self._method)
+
+        def calc_val(self, x):
+            if self._method == self.ExtrapolationMethod.LIN:
+                return self._calc_val_lin(x)
+            elif self._method == self.ExtrapolationMethod.EXP:
+                return self._calc_val_exp(x)
+            else:
+                return self._calc_val_log(x)
+
     def extrapolate_confirmed_cases(self, country_a_2_code):
-        raise NotImplementedError("extrapolate_confirmed_cases must be overridden")
+        confirmed_cases_graph = list()
+
+        country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
+        season = self._get_season()
+        real_stats = DiseaseStats.objects.filter(disease_season=season, country=country).order_by("stats_date")
+        extrapolation_x = list()
+        extrapolation_y = list()
+        for stat in real_stats:
+            confirmed_cases_graph.append(ConfirmedDailyStat(stat.stats_date, stat.confirmed))
+            extrapolation_y.append(stat.confirmed)
+            extrapolation_x.append(len(extrapolation_x) + 1)
+
+        extrapolator = self._Extrapolator()
+        extrapolator.fit_data(extrapolation_x, extrapolation_y)
+
+        last_date = confirmed_cases_graph[len(confirmed_cases_graph)-1].date
+        last_x = extrapolation_x[len(extrapolation_x)-1]
+        for i in range(1, 11):
+            extrapolation_date = last_date + datetime.timedelta(days=i)
+            extrapolation_x = last_x + i
+            confirmed_est = int(extrapolator.calc_val(extrapolation_x))
+            confirmed_cases_graph.append(ConfirmedDailyStat(extrapolation_date, confirmed_est))
+
+        return confirmed_cases_graph
 
     def _get_season(self):
         raise NotImplementedError("_get_season must be overridden")
