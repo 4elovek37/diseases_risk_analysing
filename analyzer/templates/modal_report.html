@@ -9,6 +9,9 @@
       <div class="modal-body">
         <p>Confirmed cases with 10-day estimation and amount of potential carriers around:</p>
          <p> {{ cht_confirmed|safe }}</p>
+          {% if cht_medical != None %}
+          <p> {{ cht_medical|safe }}</p>
+          {% endif %}
           <p>Assessment of risk of infection: {{ risk_of_getting }}</p>
           <p>Assessment of risk of death in case of infection: {{ risk_of_death }}</p>
           <script type="text/javascript" src="http://kozea.github.com/pygal.js/latest/pygal-tooltips.min.js"></script>

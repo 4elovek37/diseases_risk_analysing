@@ -1,15 +1,34 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import QueryDict
-from .charts import DiseaseConfirmedAndCarriersChart
-from analyzer.models import Country, Disease, DiseaseSeason, DiseaseStats, ComorbidConditionCfr
-#import numpy as np
+from .charts import DiseaseConfirmedAndCarriersChart, MedicalSituationChart
+from analyzer.models import Disease, ComorbidConditionCfr, Country, NurseStats, BedStats, PopulationStats
 from .forms import EstimateRisksForm
 from .disease_models.covid_19_model import Covid19Model
 import datetime
 
 covid_model = Covid19Model()
 
+class _HospitalStuffEstimator:
+    @staticmethod
+    def get_beds_nurses(country_a_2_code):
+        country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
+        population_k = PopulationStats.objects.filter(country=country).order_by('-year')[0].population / 1000
+
+        beds_cnt = None
+        try:
+            last_bed_per_k_stat = BedStats.objects.filter(country=country).order_by('-year')[0].beds_per_k
+            beds_cnt = population_k * last_bed_per_k_stat
+        except BedStats.DoesNotExist:
+            pass
+        nurses_cnt = None
+        try:
+            last_nurse_k_stat = NurseStats.objects.filter(country=country).order_by('-year')[0].nurses_per_k
+            nurses_cnt = population_k * last_nurse_k_stat
+        except NurseStats.DoesNotExist:
+            pass
+
+        return beds_cnt, nurses_cnt
 
 def _render_to_human_percents(val):
     if val is None:
@@ -68,10 +87,16 @@ def get_modal_report(request):
         end_date = datetime.datetime.strptime(form_data['end_date'], '%Y-%m-%d').date()
 
         # graphs
+        # estimations graph
         confirmed_cases_graph = covid_model.extrapolate_confirmed_cases(country_code)
         carriers_graph = covid_model.estimate_carriers(confirmed_cases_graph)
         confirmed_chart_generator = DiseaseConfirmedAndCarriersChart()
         confirmed_chart = confirmed_chart_generator.generate(confirmed_cases_graph, carriers_graph)
+        # medical graph
+        active_patients_graph = covid_model.get_active_patients_graph(country_code)
+        beds, nurses = _HospitalStuffEstimator.get_beds_nurses(country_code)
+        medical_chart_generator = MedicalSituationChart()
+        medical_situation_chart = medical_chart_generator.generate(active_patients_graph, beds, nurses)
 
         # chances of getting
         getting_est = covid_model.estimate_probability_of_getting(age,
@@ -84,7 +109,8 @@ def get_modal_report(request):
 
         return render(request, "modal_report.html", context={'cht_confirmed': confirmed_chart,
                                                              'risk_of_getting': _render_to_human_percents(getting_est),
-                                                             'risk_of_death': _render_to_human_percents(dying_est)})
+                                                             'risk_of_death': _render_to_human_percents(dying_est),
+                                                             'cht_medical': medical_situation_chart},)
     else:
         return HttpResponse("Request method is not a GET")
 

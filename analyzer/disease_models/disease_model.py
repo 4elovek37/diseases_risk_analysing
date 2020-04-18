@@ -110,9 +110,19 @@ class DiseaseModel:
             else:
                 return self._calc_val_log(x)
 
+    def get_active_patients_graph(self, country_a_2_code):
+        active_patients_graph = list()
+        country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
+        last_recovered = 0
+        for stat in DiseaseStats.objects.filter(disease_season=self._get_season(), country=country).order_by("stats_date"):
+            if stat.recovered:
+                last_recovered = stat.recovered
+            active_patients_graph.append(DailyStat(stat.stats_date, stat.confirmed - stat.deaths - last_recovered))
+
+        return active_patients_graph
+
     def extrapolate_confirmed_cases(self, country_a_2_code):
         confirmed_cases_graph = list()
-
         country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
         season = self._get_season()
         real_stats = DiseaseStats.objects.filter(disease_season=season, country=country).order_by("stats_date")
@@ -171,7 +181,6 @@ class DiseaseModel:
 
     def estimate_probability_of_getting(self, age, activity_level, country_a_2_code, carriers_graph, confirmed_graph,
                                         first_day, days_cnt):
-        print(first_day, days_cnt)
         country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
         population = PopulationStats.objects.filter(country=country).order_by('-year')[0].population
         sar_est = self._get_sar_estimation()
