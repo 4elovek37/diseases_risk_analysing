@@ -93,7 +93,7 @@ CREATE TABLE Population_stats
     Population_stats_id serial NOT NULL,
     Country_id smallint NOT NULL,
     Year integer NOT NULL,
-    Population bigint NOT NULL,
+    Population bigint NOT NULL CHECK(Population > 0),
     UNIQUE(Country_id, Year),
     FOREIGN KEY(Country_id) REFERENCES Country ON DELETE RESTRICT,
     PRIMARY KEY(Population_stats_id)
@@ -101,7 +101,38 @@ CREATE TABLE Population_stats
 ------------------------------
 ----
 ------------------------------
-
+------------------------------
+----Bed_stats
+------------------------------
+CREATE TABLE Bed_stats
+(
+    Bed_stats_id serial NOT NULL,
+    Country_id smallint NOT NULL,
+    Year integer NOT NULL,
+    Beds_per_k float NOT NULL CHECK(Beds_per_k > 0),
+    UNIQUE(Country_id, Year),
+    FOREIGN KEY(Country_id) REFERENCES Country ON DELETE RESTRICT,
+    PRIMARY KEY(Bed_stats_id)
+);
+------------------------------
+----
+------------------------------
+------------------------------
+----Nurse_stats
+------------------------------
+CREATE TABLE Nurse_stats
+(
+    Nurse_stats_id serial NOT NULL,
+    Country_id smallint NOT NULL,
+    Year integer NOT NULL,
+    Nurses_per_k float NOT NULL CHECK(Nurses_per_k > 0),
+    UNIQUE(Country_id, Year),
+    FOREIGN KEY(Country_id) REFERENCES Country ON DELETE RESTRICT,
+    PRIMARY KEY(Nurse_stats_id)
+);
+------------------------------
+----
+------------------------------
 ------------------------------
 ----Disease_season
 ------------------------------
@@ -483,6 +514,10 @@ INSERT INTO Disease_season(Disease_id, Start_date) VALUES(1, '11-17-2019');
 ------------------------------
 INSERT INTO Internals_data_handling_task(Task_name, Frequency_days, Enabled_flag, Command_name)
 VALUES('Update population stats', 100, 'TRUE', 'update_population_stats');
+INSERT INTO Internals_data_handling_task(Task_name, Frequency_days, Enabled_flag, Command_name)
+VALUES('Update hospital beds stats', 100, 'TRUE', 'update_bed_stats');
+INSERT INTO Internals_data_handling_task(Task_name, Frequency_days, Enabled_flag, Command_name)
+VALUES('Update hospital nurses stats', 100, 'TRUE', 'update_nurse_stats');
 INSERT INTO Internals_data_handling_task(Task_name, Frequency_days, Enabled_flag, Command_name)
 VALUES('Update COVID-19 daily stats', 1, 'TRUE', 'update_covid_19_stats');
 ------------------------------

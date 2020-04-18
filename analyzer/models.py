@@ -119,3 +119,27 @@ class PopulationStats(models.Model):
         managed = True
         db_table = 'population_stats'
         unique_together = (('country', 'year'),)
+
+
+class BedStats(models.Model):
+    bed_stats_id = models.AutoField(primary_key=True)
+    country = models.ForeignKey(Country, models.PROTECT)
+    year = models.IntegerField()
+    beds_per_k = models.FloatField()
+
+    class Meta:
+        managed = True
+        db_table = 'bed_stats'
+        unique_together = (('country', 'year'),)
+
+
+class NurseStats(models.Model):
+    nurse_stats_id = models.AutoField(primary_key=True)
+    country = models.ForeignKey(Country, models.PROTECT)
+    year = models.IntegerField()
+    nurses_per_k = models.FloatField()
+
+    class Meta:
+        managed = True
+        db_table = 'nurse_stats'
+        unique_together = (('country', 'year'),)
