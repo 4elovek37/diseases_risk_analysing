@@ -1,7 +1,7 @@
 from ..views_misc import CountryActualState
 from ..views_misc import CountriesWorldTop
 from ..views_misc import DailyStat
-from analyzer.models import Country, DiseaseStats, PopulationStats, ContactsEstimation
+from analyzer.models import Country, DiseaseStats, PopulationStats, ContactsEstimation, AgeGroupCfr, ComorbidConditionCfr
 import operator
 import statistics
 import numpy as np
@@ -22,6 +22,9 @@ class DiseaseModel:
 
     def _get_sar_estimation(self):
         return NotImplementedError("_get_sar_estimation must be overridden")
+
+    def _get_disease(self):
+        return NotImplementedError("_get_disease must be overridden")
 
     class _CombinatoricsCalculator:
         def calc_probability(self, one_obj_probability,
@@ -174,10 +177,8 @@ class DiseaseModel:
         sar_est = self._get_sar_estimation()
         contacts = 0
         for contact_stat in ContactsEstimation.objects.all().order_by('age_limit'):
-            if contacts == 0:
+            if contacts == 0 or contact_stat.age_limit <= age:
                 contacts = contact_stat.age_limit
-            elif contact_stat.age_limit <= age:
-                contacts = contact_stat.estimation
             else:
                 break
 
@@ -199,6 +200,45 @@ class DiseaseModel:
                                                                 carriers_graph[i].val,
                                                                 population - confirmed_graph[i].val))
         return 1. - prob_of_not
+
+    def estimate_probability_of_death(self, age, comorbid_list, country_a_2_code):
+        disease = self._get_disease()
+        country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
+        # avg by ages and for given age
+        cfr_by_age = 0
+        age_groups_cnt = 0
+        avg_cfr_by_age = 0
+        for age_stat in AgeGroupCfr.objects.filter(disease=disease).order_by('age_limit'):
+            if cfr_by_age == 0 or age_stat.age_limit <= age:
+                cfr_by_age = age_stat.cfr
+            age_groups_cnt += 1
+            avg_cfr_by_age += age_stat.cfr
+
+        cfr_by_age /= 100.
+        avg_cfr_by_age = float(avg_cfr_by_age) / age_groups_cnt / 100.
+
+        # by comorbid
+        cfr_by_comorbid = None
+        if len(comorbid_list) > 0:
+            cfr_by_comorbid_inv = 1.
+            for comorbid_id in comorbid_list:
+                comorbid_stat = ComorbidConditionCfr.objects.get(disease=disease, comorbid_disease_id=comorbid_id)
+                cfr_by_comorbid_inv *= (1 - comorbid_stat.cfr / 100.)
+            cfr_by_comorbid = 1 - cfr_by_comorbid_inv
+
+        # country coefficient
+        last_country_state = self._get_country_last_state(country)
+        if last_country_state.CFR is not None:
+            mult = (last_country_state.CFR / 100.) / avg_cfr_by_age #norm by avg
+            if cfr_by_comorbid is not None:
+                cfr_by_comorbid *= mult
+            else:
+                cfr_by_age *= mult
+
+        if cfr_by_comorbid is not None:
+            return min(cfr_by_comorbid, 1.)
+        else:
+            return min(cfr_by_age, 1.)
 
     def calc_world_ranks(self):
         world_top = CountriesWorldTop()

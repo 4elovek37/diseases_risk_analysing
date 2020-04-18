@@ -21,3 +21,6 @@ class Covid19Model(DiseaseModel):
     def _get_sar_estimation(self):
         return self.disease.sar_estimation
 
+    def _get_disease(self):
+        return self.disease
+
