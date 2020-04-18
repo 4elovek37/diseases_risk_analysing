@@ -189,7 +189,9 @@ class DiseaseModel:
         combinatorics = self._CombinatoricsCalculator()
         prob_of_not = 1.
 
-        first_day_idx = next(idx for idx, stat in enumerate(carriers_graph) if stat.date == first_day)
+        first_day_idx = next((idx for idx, stat in enumerate(carriers_graph) if stat.date == first_day), None)
+        if not first_day_idx:
+            return None
 
         for i in range(first_day_idx, first_day_idx + days_cnt):
             prob_of_not *= (1. - combinatorics.calc_probability(sar_est / 100.,

@@ -67,11 +67,13 @@ def get_modal_report(request):
         getting_est = covid_model.estimate_probability_of_getting(int(form_data['age']),
                                                                   form_data['social_activity_level'], country_code,
                                                                   carriers_graph, confirmed_cases_graph,
-                                                                  start_date, (end_date-start_date).days + 1) * 100
-        if getting_est < 0.001:
+                                                                  start_date, (end_date-start_date).days + 1)
+        if getting_est is None:
+            getting_est_str = '-'
+        elif getting_est * 100. < 0.001:
             getting_est_str = 'slight'
         else:
-            getting_est_str = str(round(getting_est, 3)) + '%'
+            getting_est_str = str(round(getting_est * 100., 3)) + '%'
 
         return render(request, "modal_report.html", context={'cht_confirmed': confirmed_chart,
                                                              'risk_of_getting': getting_est_str})
