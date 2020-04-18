@@ -16,7 +16,7 @@ class CountriesWorldTop:
         self.confirmed_top = list()
 
 
-class ConfirmedDailyStat:
-    def __init__(self, date, confirmed):
+class DailyStat:
+    def __init__(self, date, val):
         self.date = date
-        self.confirmed = confirmed
+        self.val = val

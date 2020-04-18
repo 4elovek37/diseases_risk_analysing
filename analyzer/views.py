@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import QueryDict
-from .charts import DiseaseConfirmedChart
+from .charts import DiseaseConfirmedAndCarriersChart
 from analyzer.models import Country, Disease, DiseaseSeason, DiseaseStats, ComorbidConditionCfr
 #import numpy as np
 from .forms import EstimateRisksForm
@@ -53,18 +53,28 @@ def country_basic_stat(request):
 def get_modal_report(request):
     if request.method == 'GET':
         form_data = request.GET
-        print(form_data)
         country_code = form_data['country_2_a_code']
+        start_date = datetime.datetime.strptime(form_data['start_date'], '%Y-%m-%d').date()
+        end_date = datetime.datetime.strptime(form_data['end_date'], '%Y-%m-%d').date()
+
+        # graphs
         confirmed_cases_graph = covid_model.extrapolate_confirmed_cases(country_code)
-        for day in confirmed_cases_graph:
-            print(day.date, day.confirmed)
+        carriers_graph = covid_model.estimate_carriers(confirmed_cases_graph)
+        confirmed_chart_generator = DiseaseConfirmedAndCarriersChart()
+        confirmed_chart = confirmed_chart_generator.generate(confirmed_cases_graph, carriers_graph)
 
-        confirmed_chart_generator = DiseaseConfirmedChart(height=600,
-                                                          width=800,
-                                                          explicit_size=True,)
-        confirmed_chart = confirmed_chart_generator.generate(confirmed_cases_graph)
+        # chances of getting
+        getting_est = covid_model.estimate_probability_of_getting(int(form_data['age']),
+                                                                  form_data['social_activity_level'], country_code,
+                                                                  carriers_graph, confirmed_cases_graph,
+                                                                  start_date, (end_date-start_date).days + 1) * 100
+        if getting_est < 0.001:
+            getting_est_str = 'slight'
+        else:
+            getting_est_str = str(round(getting_est, 3)) + '%'
 
-        return render(request, "modal_report.html", context={'cht_confirmed': confirmed_chart})
+        return render(request, "modal_report.html", context={'cht_confirmed': confirmed_chart,
+                                                             'risk_of_getting': getting_est_str})
     else:
         return HttpResponse("Request method is not a GET")
 

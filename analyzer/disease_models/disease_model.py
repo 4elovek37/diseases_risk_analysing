@@ -1,15 +1,48 @@
 from ..views_misc import CountryActualState
 from ..views_misc import CountriesWorldTop
-from ..views_misc import ConfirmedDailyStat
-from analyzer.models import Country, DiseaseStats
+from ..views_misc import DailyStat
+from analyzer.models import Country, DiseaseStats, PopulationStats, ContactsEstimation
 import operator
 import statistics
 import numpy as np
 import datetime
+import math
 from enum import Enum
 
 
 class DiseaseModel:
+    def _get_season(self):
+        raise NotImplementedError("_get_season must be overridden")
+
+    def _get_carrier_window(self):
+        return NotImplementedError("_get_carrier_window must be overridden")
+
+    def _get_carrier_multiplier(self):
+        return 1
+
+    def _get_sar_estimation(self):
+        return NotImplementedError("_get_sar_estimation must be overridden")
+
+    class _CombinatoricsCalculator:
+        def calc_probability(self, one_obj_probability,
+                             attempts_cnt, objects_of_interest_cnt, total_objects_cnt):
+            one_obj_probability_inv = 1 - one_obj_probability
+            not_interesting_objs_cnt = total_objects_cnt - objects_of_interest_cnt
+            probability_inv = 0.
+            for i in range(0, min(attempts_cnt, objects_of_interest_cnt)):
+                probability_inv += pow(one_obj_probability_inv, i) * self._calc_c(objects_of_interest_cnt, i) * \
+                self._calc_c(not_interesting_objs_cnt, attempts_cnt - i) / self._calc_c(total_objects_cnt, attempts_cnt)
+
+            return 1. - probability_inv
+
+        @staticmethod
+        def _calc_c(n, k):
+
+            upper = 1
+            for i in range(n - k + 1, n + 1):
+                upper *= i
+            return upper / math.factorial(k)
+
     class _Extrapolator:
         class ExtrapolationMethod(Enum):
             LIN = 1,
@@ -35,6 +68,11 @@ class DiseaseModel:
             self.line_f = np.poly1d(np.polyfit(x[-10:], y[-10:], 1))
             x_np = np.array(x)
             y_np = np.array(y)
+
+            if not (x_np > 0).all() or not (y_np > 0).all():
+                self._method = self.ExtrapolationMethod.LIN
+                return
+
             self.log_fit = np.polyfit(np.log(x_np), y, 1)
             self.exp_fit = np.polyfit(x, np.log(y_np), 1, w=np.sqrt(y_np))
 
@@ -43,6 +81,8 @@ class DiseaseModel:
             exp_squares = 0
 
             for i in range(len(x) - 10, len(x)):
+                if i < 0:
+                    continue
                 line_est = self._calc_val_lin(x[i])
                 log_est = self._calc_val_log(x[i])
                 exp_est = self._calc_val_exp(x[i])
@@ -76,7 +116,7 @@ class DiseaseModel:
         extrapolation_x = list()
         extrapolation_y = list()
         for stat in real_stats:
-            confirmed_cases_graph.append(ConfirmedDailyStat(stat.stats_date, stat.confirmed))
+            confirmed_cases_graph.append(DailyStat(stat.stats_date, stat.confirmed))
             extrapolation_y.append(stat.confirmed)
             extrapolation_x.append(len(extrapolation_x) + 1)
 
@@ -87,14 +127,76 @@ class DiseaseModel:
         last_x = extrapolation_x[len(extrapolation_x)-1]
         for i in range(1, 11):
             extrapolation_date = last_date + datetime.timedelta(days=i)
-            extrapolation_x = last_x + i
-            confirmed_est = int(extrapolator.calc_val(extrapolation_x))
-            confirmed_cases_graph.append(ConfirmedDailyStat(extrapolation_date, confirmed_est))
+            confirmed_est = int(extrapolator.calc_val(last_x + i))
+            confirmed_cases_graph.append(DailyStat(extrapolation_date, confirmed_est))
 
         return confirmed_cases_graph
 
-    def _get_season(self):
-        raise NotImplementedError("_get_season must be overridden")
+    def estimate_carriers(self, confirmed_cases_graph):
+        carrier_cases_graph = list()
+
+        extrapolation_x = list()
+        diffs = list()
+        for i in range(1, len(confirmed_cases_graph)):
+            curr_diff = confirmed_cases_graph[i].val - confirmed_cases_graph[i-1].val
+            diffs.append(curr_diff)
+            extrapolation_x.append(len(extrapolation_x) + 1)
+
+        extrapolator = self._Extrapolator()
+        extrapolator.fit_data(extrapolation_x, diffs)
+
+        extrapolation_x.insert(0, 0)
+        diffs.insert(0, 0)
+
+        last_x = extrapolation_x[len(extrapolation_x) - 1]
+        for i in range(1, self._get_carrier_window()):
+            diff_est = int(extrapolator.calc_val(last_x + i))
+            diffs.append(diff_est)
+
+        curr_sum_window = 0
+        for i in range(0, self._get_carrier_window() - 1):
+            curr_sum_window += diffs[i]
+
+        for i in range(0, len(confirmed_cases_graph)):
+            if i - 1 >= 0:
+                curr_sum_window -= diffs[i-1]
+            curr_sum_window += diffs[i+self._get_carrier_window()-1]
+            carrier_est = int(curr_sum_window * self._get_carrier_multiplier())
+            carrier_cases_graph.append(DailyStat(confirmed_cases_graph[i].date, carrier_est))
+
+        return carrier_cases_graph
+
+    def estimate_probability_of_getting(self, age, activity_level, country_a_2_code, carriers_graph, confirmed_graph,
+                                        first_day, days_cnt):
+        print(first_day, days_cnt)
+        country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
+        population = PopulationStats.objects.filter(country=country).order_by('-year')[0].population
+        sar_est = self._get_sar_estimation()
+        contacts = 0
+        for contact_stat in ContactsEstimation.objects.all().order_by('age_limit'):
+            if contacts == 0:
+                contacts = contact_stat.age_limit
+            elif contact_stat.age_limit <= age:
+                contacts = contact_stat.estimation
+            else:
+                break
+
+        if activity_level == 'min':
+            contacts = round(contacts * (2./3))
+        elif activity_level == 'max':
+            contacts = round(contacts * (3./2))
+
+        combinatorics = self._CombinatoricsCalculator()
+        prob_of_not = 1.
+
+        first_day_idx = next(idx for idx, stat in enumerate(carriers_graph) if stat.date == first_day)
+
+        for i in range(first_day_idx, first_day_idx + days_cnt):
+            prob_of_not *= (1. - combinatorics.calc_probability(sar_est / 100.,
+                                                                contacts,
+                                                                carriers_graph[i].val,
+                                                                population - confirmed_graph[i].val))
+        return 1. - prob_of_not
 
     def calc_world_ranks(self):
         world_top = CountriesWorldTop()
