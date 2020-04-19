@@ -9,6 +9,7 @@ import datetime
 
 covid_model = Covid19Model()
 
+
 class _HospitalStuffEstimator:
     @staticmethod
     def get_beds_nurses(country_a_2_code):
@@ -29,6 +30,7 @@ class _HospitalStuffEstimator:
             pass
 
         return beds_cnt, nurses_cnt
+
 
 def _render_to_human_percents(val):
     if val is None:

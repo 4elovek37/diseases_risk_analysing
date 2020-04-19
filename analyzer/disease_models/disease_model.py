@@ -100,7 +100,7 @@ class DiseaseModel:
                 self._method = self.ExtrapolationMethod.LOG
             else:
                 self._method = self.ExtrapolationMethod.EXP
-            print(self._method)
+            #print(self._method)
 
         def calc_val(self, x):
             if self._method == self.ExtrapolationMethod.LIN:
@@ -187,10 +187,9 @@ class DiseaseModel:
         contacts = 0
         for contact_stat in ContactsEstimation.objects.all().order_by('age_limit'):
             if contacts == 0 or contact_stat.age_limit <= age:
-                contacts = contact_stat.age_limit
+                contacts = contact_stat.estimation
             else:
                 break
-
         if activity_level == 'min':
             contacts = round(contacts * (2./3))
         elif activity_level == 'max':
@@ -198,7 +197,6 @@ class DiseaseModel:
 
         combinatorics = self._CombinatoricsCalculator()
         prob_of_not = 1.
-
         first_day_idx = next((idx for idx, stat in enumerate(carriers_graph) if stat.date == first_day), None)
         if not first_day_idx:
             return None
