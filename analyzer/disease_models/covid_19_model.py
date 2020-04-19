@@ -13,7 +13,7 @@ class Covid19Model(DiseaseModel):
         return self.season
 
     def _get_carrier_window(self):
-        return 4
+        return 5
 
     def _get_carrier_multiplier(self):
         return 1.25
