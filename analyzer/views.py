@@ -96,10 +96,10 @@ def get_modal_report(request):
         confirmed_chart = confirmed_chart_generator.generate(confirmed_cases_graph, carriers_graph)
 
         # medical graph
-        active_patients_graph = covid_model.get_active_patients_graph(country_code)
+        active_patients_graph, cfr_graph = covid_model.get_active_patients_and_cfr_graph(country_code)
         beds, nurses = _HospitalStuffEstimator.get_beds_nurses(country_code)
         medical_chart_generator = MedicalSituationChart()
-        medical_situation_chart = medical_chart_generator.generate(active_patients_graph, beds, nurses)
+        medical_situation_chart = medical_chart_generator.generate(active_patients_graph, cfr_graph, beds, nurses)
 
         # chances of getting
         days_cnt = (end_date-start_date).days + 1

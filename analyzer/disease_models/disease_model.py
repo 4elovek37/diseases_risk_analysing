@@ -110,16 +110,19 @@ class DiseaseModel:
             else:
                 return self._calc_val_log(x)
 
-    def get_active_patients_graph(self, country_a_2_code):
+    def get_active_patients_and_cfr_graph(self, country_a_2_code):
         active_patients_graph = list()
+        cfr_graph = list()
         country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
         last_recovered = 0
         for stat in DiseaseStats.objects.filter(disease_season=self._get_season(), country=country).order_by("stats_date"):
             if stat.recovered:
                 last_recovered = stat.recovered
             active_patients_graph.append(DailyStat(stat.stats_date, stat.confirmed - stat.deaths - last_recovered))
+            if stat.deaths > 0 and stat.confirmed > 0:
+                cfr_graph.append(DailyStat(stat.stats_date, (stat.deaths / stat.confirmed)))
 
-        return active_patients_graph
+        return active_patients_graph, cfr_graph
 
     def extrapolate_confirmed_cases(self, country_a_2_code):
         confirmed_cases_graph = list()
