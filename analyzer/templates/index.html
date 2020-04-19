@@ -41,8 +41,12 @@
 												url: "{% url 'get_estimate_risk_form' %}",
 												data: data,
 												success: function (data) {
+													var today = new Date();
 													$("#risk_estimation_form_div").html(data);
-													$('.datepicker').datepicker({ dateFormat: 'yy-mm-dd'});
+													$('.datepicker').datepicker({
+														dateFormat: 'yy-mm-dd',
+														maxDate: +9
+													});
 													$('#risk_estimation_form').on('submit', function(event){
 														event.preventDefault();
 														 var formstring = $(this).serialize();
@@ -54,7 +58,7 @@
 																$('#model_report').html(data).modal('show');
 															},
 															 error: function(data){
-																alert("epic fail");
+																alert("Wrong form submission or internal error.");
 															}
 														 });
 													});

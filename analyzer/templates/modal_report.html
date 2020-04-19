@@ -10,7 +10,7 @@
           <h5 class="modal-title center" align="center">Current situation and assessments</h5>
           <p>Confirmed cases and estimation of the number of potential carriers around with 10-day extrapolation:</p>
           <p> {{ cht_confirmed|safe }}</p>
-          <p>Assessment of risk of infection: <b>{{ risk_of_getting }}</b></p>
+          <p>Assessment of risk of infection in {{ days_cnt }} days starting from {{ start_date }}: <b>{{ risk_of_getting }}</b></p>
           <p>Assessment of risk of death in case of infection: <b>{{ risk_of_death }}</b></p>
 
           {% if cht_medical != None %}

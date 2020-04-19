@@ -94,6 +94,7 @@ def get_modal_report(request):
         carriers_graph = covid_model.estimate_carriers(confirmed_cases_graph)
         confirmed_chart_generator = DiseaseConfirmedAndCarriersChart()
         confirmed_chart = confirmed_chart_generator.generate(confirmed_cases_graph, carriers_graph)
+
         # medical graph
         active_patients_graph = covid_model.get_active_patients_graph(country_code)
         beds, nurses = _HospitalStuffEstimator.get_beds_nurses(country_code)
@@ -101,15 +102,18 @@ def get_modal_report(request):
         medical_situation_chart = medical_chart_generator.generate(active_patients_graph, beds, nurses)
 
         # chances of getting
+        days_cnt = (end_date-start_date).days + 1
         getting_est = covid_model.estimate_probability_of_getting(age,
                                                                   form_data['social_activity_level'], country_code,
                                                                   carriers_graph, confirmed_cases_graph,
-                                                                  start_date, (end_date-start_date).days + 1)
+                                                                  start_date, days_cnt)
 
         # chances of dying
         dying_est = covid_model.estimate_probability_of_death(age, form_data.getlist('comorbid'), country_code)
 
         return render(request, "modal_report.html", context={'cht_confirmed': confirmed_chart,
+                                                             'days_cnt': days_cnt,
+                                                             'start_date': start_date,
                                                              'risk_of_getting': _render_to_human_percents(getting_est),
                                                              'risk_of_death': _render_to_human_percents(dying_est),
                                                              'cht_medical': medical_situation_chart,
