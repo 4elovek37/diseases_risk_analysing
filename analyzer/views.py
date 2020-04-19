@@ -110,7 +110,9 @@ def get_modal_report(request):
         return render(request, "modal_report.html", context={'cht_confirmed': confirmed_chart,
                                                              'risk_of_getting': _render_to_human_percents(getting_est),
                                                              'risk_of_death': _render_to_human_percents(dying_est),
-                                                             'cht_medical': medical_situation_chart},)
+                                                             'cht_medical': medical_situation_chart,
+                                                             'beds_cnt': round(beds),
+                                                             'nurses_cnt': round(nurses)},)
     else:
         return HttpResponse("Request method is not a GET")
 

@@ -7,13 +7,19 @@
         </button>
       </div>
       <div class="modal-body">
-        <p>Confirmed cases with 10-day estimation and amount of potential carriers around:</p>
-         <p> {{ cht_confirmed|safe }}</p>
+          <h5 class="modal-title center" align="center">Current situation and assessments</h5>
+          <p>Confirmed cases and estimation of the number of potential carriers around with 10-day extrapolation:</p>
+          <p> {{ cht_confirmed|safe }}</p>
+          <p>Assessment of risk of infection: <b>{{ risk_of_getting }}</b></p>
+          <p>Assessment of risk of death in case of infection: <b>{{ risk_of_death }}</b></p>
+
           {% if cht_medical != None %}
+          <h5 class="modal-title center" align="center">Medical resources utilization</h5>
           <p> {{ cht_medical|safe }}</p>
+          <p>Approximate number of hospital beds: <b>{{ beds_cnt }}</b></p>
+          <p>Approximate number of nurses: <b>{{ nurses_cnt }}</b></p>
           {% endif %}
-          <p>Assessment of risk of infection: {{ risk_of_getting }}</p>
-          <p>Assessment of risk of death in case of infection: {{ risk_of_death }}</p>
+
           <script type="text/javascript" src="http://kozea.github.com/pygal.js/latest/pygal-tooltips.min.js"></script>
       </div>
       <div class="modal-footer">
