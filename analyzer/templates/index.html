@@ -11,6 +11,24 @@
 
 		<div class="modal fade" id="model_report" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
 		</div>
+		<div class="modal fade" id="modal_disclaimer" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="modal_disclaimer_title">Disclaimer</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+				</div>
+				<div class="modal-body">
+					<p>This is mainly a student project. Please, do not consider any assumptions which are done in this site as endpoint truth and do not do any serious conclusions. </p>
+				</div>
+				<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+				</div>
+				</div>
+		 	</div>
+		</div>
 
 		<table class="table-main">
 				<tbody>
@@ -101,6 +119,7 @@
 										$(document).ready(function() {
 											renderBasicCountryStat("00");
 											renderForm("00");
+											$('#modal_disclaimer').modal('show');
 										});
 
 
