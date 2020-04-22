@@ -17,17 +17,16 @@ class _HospitalStuffEstimator:
         population_k = PopulationStats.objects.filter(country=country).order_by('-year')[0].population / 1000
 
         beds_cnt = None
-        try:
-            last_bed_per_k_stat = BedStats.objects.filter(country=country).order_by('-year')[0].beds_per_k
+        beds_stats = BedStats.objects.filter(country=country).order_by('-year')
+        if len(beds_stats) > 0:
+            last_bed_per_k_stat = beds_stats[0].beds_per_k
             beds_cnt = population_k * last_bed_per_k_stat
-        except BedStats.DoesNotExist:
-            pass
+
         nurses_cnt = None
-        try:
-            last_nurse_k_stat = NurseStats.objects.filter(country=country).order_by('-year')[0].nurses_per_k
+        nurses_stats = NurseStats.objects.filter(country=country).order_by('-year')
+        if len(nurses_stats) > 0:
+            last_nurse_k_stat = nurses_stats[0].nurses_per_k
             nurses_cnt = population_k * last_nurse_k_stat
-        except NurseStats.DoesNotExist:
-            pass
 
         return beds_cnt, nurses_cnt
 
@@ -117,8 +116,9 @@ def get_modal_report(request):
                                                              'risk_of_getting': _render_to_human_percents(getting_est),
                                                              'risk_of_death': _render_to_human_percents(dying_est),
                                                              'cht_medical': medical_situation_chart,
-                                                             'beds_cnt': round(beds),
-                                                             'nurses_cnt': round(nurses)},)
+                                                             'beds_cnt': round(beds) if beds is not None else None,
+                                                             'nurses_cnt': round(nurses) if nurses is not None else None
+                                                             },)
     else:
         return HttpResponse("Request method is not a GET")
 
