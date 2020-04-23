@@ -84,7 +84,7 @@ class Command(BaseCommand):
                 continue
 
             for year, value in country_stats.items():
-                if store_only_fresh and (curr_year - int(year)) > 3:
+                if store_only_fresh and (curr_year - int(year)) > 2:
                     continue
                 obj, created = PopulationStats.objects.update_or_create(country=country, year=year,
                                                                         defaults={'population': value})
