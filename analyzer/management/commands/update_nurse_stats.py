@@ -81,7 +81,7 @@ class Command(BaseCommand):
                 continue
 
             if store_only_fresh:
-                years_list = sorted(list(country_stats))[:-1]  # get only the last year
+                years_list = sorted(list(country_stats))[-1:] # get only the last year
             else:
                 years_list = list(country_stats)
 
