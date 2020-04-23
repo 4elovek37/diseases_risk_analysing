@@ -30,7 +30,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            directory = os.path.dirname(self.zip_path)
+            directory = os.path.dirname(self.json_path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
