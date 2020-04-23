@@ -21,6 +21,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
+            directory = os.path.dirname(self.zip_path)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
             wget.download(self.url, self.zip_path)
             with ZipFile(self.zip_path) as zip_data:
                 with zip_data.open(zip_data.namelist()[0]) as xml_data:
