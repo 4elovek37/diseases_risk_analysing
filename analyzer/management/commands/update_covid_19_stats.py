@@ -30,6 +30,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
+            directory = os.path.dirname(self.zip_path)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
             wget.download(self.url, self.json_path)
             stats_from_json = self.process_json(self.json_path)
             self.stdout.write(self.update_db(stats_from_json))
