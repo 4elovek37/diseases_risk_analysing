@@ -83,7 +83,7 @@ class Command(BaseCommand):
                 continue
 
             for year, value in country_stats.items():
-                if store_only_fresh and (curr_year - year) > 10:
+                if store_only_fresh and (curr_year - int(year)) > 10:
                     continue
                 obj, created = BedStats.objects.update_or_create(country=country, year=year,
                                                                  defaults={'beds_per_k': value})
