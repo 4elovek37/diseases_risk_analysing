@@ -4,7 +4,6 @@ import os
 import wget
 from zipfile import ZipFile
 import untangle
-from datetime import date
 
 
 class BedStatsFromXml:
@@ -71,7 +70,6 @@ class Command(BaseCommand):
     @staticmethod
     def update_db(stats):
         # TODO: store all available data when storage is not limited
-        curr_year = date.today().year
         store_only_fresh = True
 
         inserted = 0
@@ -82,9 +80,14 @@ class Command(BaseCommand):
             if country_stats is None:
                 continue
 
-            for year, value in country_stats.items():
-                if store_only_fresh and (curr_year - int(year)) > 10:
-                    continue
+            if store_only_fresh:
+                years_list = sorted(list(country_stats))[:-1]  # get only the last year
+            else:
+                years_list = list(country_stats)
+
+            for year in years_list:
+                value = country_stats[year]
+
                 obj, created = BedStats.objects.update_or_create(country=country, year=year,
                                                                  defaults={'beds_per_k': value})
                 if created:
