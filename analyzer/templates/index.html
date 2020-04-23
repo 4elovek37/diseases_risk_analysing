@@ -108,7 +108,7 @@
 
 										map.on('click', function(e) {
 											var coords = e.lngLat.lng + ',' + e.lngLat.lat
-											var code_request = 'http://api.tiles.mapbox.com/v4/geocode/mapbox.places-country-v1/'
+											var code_request = 'https://api.tiles.mapbox.com/v4/geocode/mapbox.places-country-v1/'
 											+ coords + '.json?access_token=' + mapboxgl.accessToken;
 											$.getJSON(code_request, function(data) {
 												if(data.features.length > 0){
