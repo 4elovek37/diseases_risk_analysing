@@ -27,7 +27,7 @@ CREATE TABLE Disease
     Disease_id serial NOT NULL,
     Name VARCHAR(50) NOT NULL,
     ICD_10_Code CHAR(5),
-    SAR_estimation float CHECK,
+    SAR_estimation float CHECK(SAR_estimation > 0),
     UNIQUE(Name),
     PRIMARY KEY(Disease_id)
 );
