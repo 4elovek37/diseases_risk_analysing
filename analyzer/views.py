@@ -45,7 +45,8 @@ def index(request):
         world_top = covid_model.calc_world_ranks()
         return render(request, 'index.html', context={'CFR_top': world_top.cfr_top,
                                                       'growth_top': world_top.growth_top,
-                                                      'confirmed_top': world_top.confirmed_top})
+                                                      'confirmed_top': world_top.confirmed_top,
+                                                      'page_title': 'COVID-19 statistics, analytics and risk assessments'})
     else:
         return HttpResponse("Request method is not a GET")
 
