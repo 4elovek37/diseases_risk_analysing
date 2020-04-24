@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'c&q8l28m^-mj%8gdp)9hbelpmms5e1
 #DEBUG = True
 DEBUG = bool(os.environ.get('DJANGO_DEBUG', True))
 
-ALLOWED_HOSTS = ['tranquil-mountain-39571.herokuapp.com', 'covid-info.live', '127.0.0.1']
+ALLOWED_HOSTS = ['tranquil-mountain-39571.herokuapp.com', 'covid-info.live', 'www.covid-info.live', '127.0.0.1']
 
 
 # Application definition
