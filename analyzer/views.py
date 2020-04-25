@@ -58,27 +58,27 @@ def country_basic_stat(request):
         confirmed = 0
         deaths = 0
         recovered = 0
+        date = '-'
         cfr = '-'
 
         if country_a_2_code == '00':
             country_a_2_code = 'World'
-            confirmed, deaths, recovered = covid_model.get_world_sum()
+            confirmed, deaths, recovered, date = covid_model.get_world_sum()
 
             if deaths > 0 and confirmed > 0:
                 cfr = (deaths / confirmed) * 100
         else:
-            confirmed, deaths, recovered, cfr, name = covid_model.prerender_country_last_state(country_a_2_code)
+            confirmed, deaths, recovered, cfr, name, date = covid_model.prerender_country_last_state(country_a_2_code)
             country_a_2_code = name
         if cfr != '-':
             cfr = round(cfr, 2)
 
-        last_update_date = covid_model.get_last_update_date()
         return render(request, 'country_basic_stat.html', context={'region_name': country_a_2_code,
                                                                    'confirmed': confirmed,
                                                                    'deaths': deaths,
                                                                    'recovered': recovered,
                                                                    'cfr': cfr,
-                                                                   'last_update_date': last_update_date})
+                                                                   'last_update_date': date})
     else:
         return HttpResponse("Request method is not a GET")
 

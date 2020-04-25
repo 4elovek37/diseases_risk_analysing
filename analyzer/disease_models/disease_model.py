@@ -26,9 +26,6 @@ class DiseaseModel:
     def _get_disease(self):
         return NotImplementedError("_get_disease must be overridden")
 
-    def get_last_update_date(self):
-        return NotImplementedError("_get_last_update_date must be overridden")
-
     class _CombinatoricsCalculator:
         def calc_probability(self, one_obj_probability,
                              attempts_cnt, objects_of_interest_cnt, total_objects_cnt):
@@ -276,6 +273,7 @@ class DiseaseModel:
         confirmed = 0
         deaths = 0
         recovered = 0
+        last_date = datetime.date.min
 
         countries = Country.objects.all()
         for country in countries:
@@ -287,8 +285,10 @@ class DiseaseModel:
             deaths += state.deaths
             if state.recovered is not None:
                 recovered += state.recovered
+            if state.date > last_date:
+                last_date = state.date
 
-        return confirmed, deaths, recovered
+        return confirmed, deaths, recovered, last_date
 
     def prerender_country_last_state(self, country_a_2_code):
         confirmed = '-'
@@ -296,6 +296,7 @@ class DiseaseModel:
         recovered = '-'
         cfr = '-'
         name = '-'
+        date = '-'
 
         country = Country.objects.get(iso_a_2_code=country_a_2_code.upper())
         if country:
@@ -304,6 +305,7 @@ class DiseaseModel:
                 name = country.name
                 confirmed = state.confirmed
                 deaths = state.deaths
+                date = state.date
 
                 if state.recovered is not None:
                     recovered = state.recovered
@@ -311,7 +313,7 @@ class DiseaseModel:
                 if state.CFR is not None:
                     cfr = state.CFR
 
-        return confirmed, deaths, recovered, cfr, name
+        return confirmed, deaths, recovered, cfr, name, date
 
     def check_if_country_code_acceptable(self, country_a_2_code):
         try:
@@ -331,7 +333,7 @@ class DiseaseModel:
         if not last_state:
             return None
 
-        country_state = CountryActualState(country.name)
+        country_state = CountryActualState(country.name, last_state[0].stats_date)
         country_state.confirmed = last_state[0].confirmed
         country_state.deaths = last_state[0].deaths
         country_state.recovered = last_state[0].recovered
@@ -355,7 +357,7 @@ class DiseaseModel:
             if not stats_ordered:
                 continue
 
-            country_state = CountryActualState(country.name)
+            country_state = CountryActualState(country.name, stats_ordered[0].stats_date)
 
             prev_confirmed = -1
             growth_gradient = list()

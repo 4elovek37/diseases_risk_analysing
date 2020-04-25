@@ -1,5 +1,5 @@
 class CountryActualState:
-    def __init__(self, country_name):
+    def __init__(self, country_name, date):
         self.country_name = country_name
         self.CFR = None
         self.confirmed = 0
@@ -7,6 +7,7 @@ class CountryActualState:
         self.recovered = None
         #self.growth_gradient = list()
         self.avg_growth = 0
+        self.date = date
 
 
 class CountriesWorldTop:
