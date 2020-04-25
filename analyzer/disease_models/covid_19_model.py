@@ -1,5 +1,5 @@
 from .disease_model import DiseaseModel
-from analyzer.models import Disease, DiseaseSeason
+from analyzer.models import Disease, DiseaseSeason, InternalsDataHandlingTask
 
 
 class Covid19Model(DiseaseModel):
@@ -23,4 +23,8 @@ class Covid19Model(DiseaseModel):
 
     def _get_disease(self):
         return self.disease
+
+    def get_last_update_date(self):
+        task = InternalsDataHandlingTask.objects.get(task_name='Update COVID-19 daily stats')
+        return task.last_update
 

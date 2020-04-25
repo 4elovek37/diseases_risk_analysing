@@ -71,11 +71,14 @@ def country_basic_stat(request):
             country_a_2_code = name
         if cfr != '-':
             cfr = round(cfr, 2)
+
+        last_update_date = covid_model.get_last_update_date()
         return render(request, 'country_basic_stat.html', context={'region_name': country_a_2_code,
                                                                    'confirmed': confirmed,
                                                                    'deaths': deaths,
                                                                    'recovered': recovered,
-                                                                   'cfr': cfr})
+                                                                   'cfr': cfr,
+                                                                   'last_update_date': last_update_date})
     else:
         return HttpResponse("Request method is not a GET")
 

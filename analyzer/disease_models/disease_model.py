@@ -26,6 +26,9 @@ class DiseaseModel:
     def _get_disease(self):
         return NotImplementedError("_get_disease must be overridden")
 
+    def get_last_update_date(self):
+        return NotImplementedError("_get_last_update_date must be overridden")
+
     class _CombinatoricsCalculator:
         def calc_probability(self, one_obj_probability,
                              attempts_cnt, objects_of_interest_cnt, total_objects_cnt):
