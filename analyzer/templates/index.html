@@ -70,6 +70,7 @@
 	        	</div>
 	  		</div>
 		<div class="row">
+			<div class="col-md-12 text-center">
 		<table class="table-main">
 				<tbody>
 				<tr>
@@ -172,46 +173,44 @@
 										<tbody>
 											<tr>
 												<td>
+												<div class = "card-group">
+
 													<div class="card text-center">
-													  <h5 class="card-header py-2">
-														Fatality rate top
-													  </h5>
+													  <h5 class="card-header py-2">Fatality rate</h5>
 													  <div class="card-body">
 															{% for country in CFR_top %}
 														  <p class="card-text">
-																{{ country.country_name }}: {{ country.CFR }}%
+																{{ forloop.counter }}. {{ country.country_name }}: {{ country.CFR }}%
 														  </p>
 															{% endfor %}
 													  </div>
 													</div>
-												</td>
-												<td>
+
+
 													<div class="card text-center">
-													  <h5 class="card-header py-2">
-														Expansion rate top
-													  </h5>
+													  <h5 class="card-header py-2">Expansion rate</h5>
 													  <div class="card-body">
 														 {% for country in growth_top %}
 														<p class="card-text">
-															{{ country.country_name }}: {{ country.avg_growth }}
+															{{ forloop.counter }}. {{ country.country_name }}: {{ country.avg_growth }}
 														</p>
 														  {% endfor %}
 													  </div>
 													</div>
-												</td>
-												<td>
+
+
 													<div class="card text-center">
-													  <h5 class="card-header py-2">
-														Confirmed cases top
-													  </h5>
+													  <h5 class="card-header py-2">Confirmed cases</h5>
 													  <div class="card-body">
 														  {% for country in confirmed_top %}
 														<p class="card-text">
-															{{ country.country_name }}: {{ country.confirmed }}
+															{{ forloop.counter }}. {{ country.country_name }}: {{ country.confirmed }}
 														</p>
 														  {% endfor %}
 													  </div>
 													</div>
+
+												</div>
 												</td>
 											</tr>
 										</tbody>
@@ -229,6 +228,7 @@
 				</tr>
 				</tbody>
 				</table>
+			</div> <!-- /col -->
 		</div> <!-- /row -->
 </div>
 </section>
