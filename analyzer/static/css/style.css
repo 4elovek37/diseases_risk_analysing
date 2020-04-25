@@ -448,22 +448,10 @@ pre {
 
 .container {
   width: 100%;
-  padding-right: 15px;
-  padding-left: 15px;
-  margin-right: auto;
-  margin-left: auto; }
-  @media (min-width: 576px) {
-    .container {
-      max-width: 540px; } }
-  @media (min-width: 768px) {
-    .container {
-      max-width: 720px; } }
-  @media (min-width: 992px) {
-    .container {
-      max-width: 960px; } }
-  @media (min-width: 1200px) {
-    .container {
-      max-width: 1140px; } }
+  padding-right: 0px;
+  padding-left: 0px;
+  margin-right: 0px;
+  margin-left: 0px; }
 
 .container-fluid {
   width: 100%;
@@ -5359,7 +5347,7 @@ a.close.disabled {
   vertical-align: text-top !important; }
 
 .bg-primary {
-  background-color: #007bff !important; }
+  background-color: #4292e8 !important; }
 
 a.bg-primary:hover, a.bg-primary:focus,
 button.bg-primary:hover,
@@ -8174,7 +8162,7 @@ h1, h2, h3, h4, h5,
   font-weight: 300; }
 
 .ftco-section {
-  padding: 4em 0; }
+  padding: 0em 0; }
   .ftco-section.ftco-section-2 {
     padding: 6em 0; }
 

@@ -46,7 +46,7 @@ def index(request):
         return render(request, 'index.html', context={'CFR_top': world_top.cfr_top,
                                                       'growth_top': world_top.growth_top,
                                                       'confirmed_top': world_top.confirmed_top,
-                                                      'page_title': 'COVID-19 statistics, analytics and risk assessments'})
+                                                      'page_title': 'COVID-19 Map. Coronavirus statistics, analytics and personal risk assessments'})
     else:
         return HttpResponse("Request method is not a GET")
 
