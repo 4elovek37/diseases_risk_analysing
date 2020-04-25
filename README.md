@@ -12,5 +12,5 @@ http://www.covid-info.live
 <h2><b>Disclaimer</b></h2> 
 <p>This is personal research and it must be used only for informational purposes. Please, <b>do not</b> consider any assumptions which are done on this site as endpoint truth and <b>do not</b> do any serious conclusions.</p>
 <h2>Copyrights</h2>
-<p>US is based on https://getbootstrap.com/ and https://colorlib.com/</p>
+<p>UI is based on https://getbootstrap.com/ and https://colorlib.com/</p>
 <p>Backend is based on https://www.djangoproject.com/ and https://www.postgresql.org/</p>
