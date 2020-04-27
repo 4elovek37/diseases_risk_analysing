@@ -4,7 +4,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 sched = BlockingScheduler()
 
 
-@sched.scheduled_job('cron', hour=1)
+@sched.scheduled_job('cron', hour=6, minute=30)
 def scheduled_job():
     print('Calling handle_tasks...')
     call(['python', './manage.py', 'handle_tasks'])
