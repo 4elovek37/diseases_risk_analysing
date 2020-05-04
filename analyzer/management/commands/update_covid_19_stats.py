@@ -3,6 +3,8 @@ from analyzer.models import Country, Disease, DiseaseSeason, DiseaseStats
 import wget
 import os
 import json
+import gzip
+import shutil
 from datetime import date
 
 
@@ -25,7 +27,9 @@ class Command(BaseCommand):
 
     def __init__(self):
         BaseCommand.__init__(self)
-        self.url = 'https://raw.githubusercontent.com/cipriancraciun/covid19-datasets/master/exports/jhu/v1/values.json'
+        #'https://raw.githubusercontent.com/cipriancraciun/covid19-datasets/master/exports/jhu/v1/values.json'
+        self.url = 'https://github.com/cipriancraciun/covid19-datasets/raw/master/exports/jhu/v1/daily/values.json.gz'
+        self.zip_path = './analyzer/management/commands/update_covid_19_stats/dataset.gz'
         self.json_path = './analyzer/management/commands/update_covid_19_stats/dataset.json'
 
     def handle(self, *args, **options):
@@ -34,7 +38,11 @@ class Command(BaseCommand):
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
-            wget.download(self.url, self.json_path)
+            wget.download(self.url, self.zip_path)
+            with gzip.open(self.zip_path, 'rb') as f_in:
+                with open(self.json_path, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+
             stats_from_json = self.process_json(self.json_path)
             self.stdout.write(self.update_db(stats_from_json))
         except:
@@ -95,3 +103,6 @@ class Command(BaseCommand):
     def clear_temp_data(self):
         if os.path.exists(self.json_path):
             os.remove(self.json_path)
+
+        if os.path.exists(self.zip_path):
+            os.remove(self.zip_path)
